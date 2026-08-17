@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control de Entrenamiento & Running · Logbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0c2033;
+    --bg-2: #0f2740;
+    --panel: #123049;
+    --line: rgba(140,200,255,0.12);
+    --line-strong: rgba(140,200,255,0.30);
+    --ink: #eaf3fa;
+    --ink-dim: #8fadc4;
+    --ink-faint: #5c7c93;
+    --teal: #5fd9c9;
+    --amber: #ff9f45;
+    --purple: #b39ddb;
+    --pink: #ff70a6;
+    --orange: #ff922b;
+    --red: #ff6b6b;
+    --green: #51cf66;
+  }
+  *{box-sizing:border-box;}
+  html,body{background:var(--bg); min-height:100vh;}
+  body{
+    margin:0;
+    padding:20px;
+    font-family:'IBM Plex Mono', monospace;
+    color:var(--ink);
+    background:var(--bg);
+    display:flex;
+    flex-direction:column;
+  }
+  .sheet{
+    max-width:1280px;
+    width:100%;
+    margin:0 auto;
+    border:1px solid var(--line-strong);
+    background:linear-gradient(180deg, rgba(18,48,73,0.6), rgba(18,48,73,0.3));
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.2), 0 30px 80px -30px rgba(0,0,0,0.6);
+    display:flex;
+    flex-direction:column;
+    min-height: calc(100vh - 40px);
+    position: relative;
+  }
+
+  /* Contenedor Fijo para Header + Navegación */
+  .sticky-header-wrapper {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--bg-2);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+
+  /* ---------- Header Block ---------- */
+  .title-block{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:16px;
+    padding:20px 24px;
+    border-bottom:2px solid var(--line-strong);
+    position:relative;
+    background: var(--bg-2);
+  }
+  .title-block::before{
+    content:"";
+    position:absolute;
+    left:0;right:0;top:0;
+    height:4px;
+    background:repeating-linear-gradient(90deg, var(--teal) 0 18px, transparent 18px 26px);
+    opacity:0.6;
+  }
+  .tb-left h1{
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    letter-spacing:2px;
+    font-size:clamp(22px,3vw,30px);
+    margin:0 0 4px;
+    text-transform:uppercase;
+  }
+  .tb-left .subtitle{
+    margin:0;
+    color:var(--ink-dim);
+    font-size:12px;
+    letter-spacing:1px;
+  }
+  .tb-right{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .tb-field{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    min-width:65px;
+  }
+  .tb-field span{
+    font-size:9px;
+    letter-spacing:1.5px;
+    color:var(--ink-faint);
+    text-transform:uppercase;
+  }
+  .tb-field strong{
+    font-size:18px;
+    font-weight:600;
+    color:var(--teal);
+  }
+  .tb-field strong.amber{color:var(--amber);}
+  .tb-field strong.purple{color:var(--purple);}
+
+  .btn-primary{
+    background:var(--teal);
+    border:1px solid var(--teal);
+    color:#0c2033;
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    font-size:11px;
+    padding:10px 14px;
+    cursor:pointer;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    transition:all .15s;
+  }
+  .btn-primary:hover{background:#73e0d2; border-color:#73e0d2;}
+
+  .btn-sec{
+    background:transparent;
+    border:1px solid var(--line-strong);
+    color:var(--ink-dim);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    padding:8px 12px;
+    cursor:pointer;
+    transition:all .15s;
+  }
+  .btn-sec:hover{color:var(--ink); border-color:var(--teal);}
+
+  .btn-excel{
+    background:rgba(81,207,102,0.15);
+    border:1px solid rgba(81,207,102,0.4);
+    color:var(--green);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    padding:8px 12px;
+    cursor:pointer;
+    transition:all .15s;
+    font-weight:600;
+  }
+  .btn-excel:hover{background:rgba(81,207,102,0.25); border-color:var(--green);}
+
+  /* ---------- Nav / Días ---------- */
+  .nav-tabs{
+    display:flex;
+    border-bottom:1px solid var(--line-strong);
+    background:var(--bg-2);
+    padding:0 16px;
+    gap:4px;
+    overflow-x:auto;
+    align-items:center;
+  }
+  .tab-btn{
+    background:transparent;
+    border:none;
+    border-bottom:2px solid transparent;
+    color:var(--ink-dim);
+    font-family:'Oswald',sans-serif;
+    font-size:13px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    padding:12px 14px;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:all .15s;
+  }
+  .tab-btn:hover{color:var(--ink);}
+  .tab-btn.active{
+    color:var(--teal);
+    border-bottom-color:var(--teal);
+  }
+  .tab-btn.prog-tab{
+    color:var(--amber);
+    margin-left:auto;
+  }
+  .tab-btn.prog-tab.active{
+    color:var(--amber);
+    border-bottom-color:var(--amber);
+  }
+
+  /* ---------- Main Layout ---------- */
+  .content-area{
+    padding:20px;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+  }
+
+  /* Grid Gym + Running */
+  .day-grid{
+    display:grid;
+    grid-template-columns: 2fr 1fr;
+    gap:20px;
+    align-items:start;
+  }
+
+  .panel-box{
+    background:rgba(15,39,64,0.5);
+    border:1px solid var(--line-strong);
+    border-radius:4px;
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .panel-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-bottom:1px solid var(--line-strong);
+    padding-bottom:10px;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .panel-header h3{
+    margin:0;
+    font-family:'Oswald',sans-serif;
+    font-size:15px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--teal);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  /* Tables Design */
+  .custom-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:12px;
+  }
+  .custom-table th{
+    text-align:left;
+    padding:8px;
+    color:var(--ink-faint);
+    border-bottom:1px solid var(--line-strong);
+    font-size:10px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+  }
+  .custom-table td{
+    padding:10px 8px;
+    border-bottom:1px solid var(--line);
+    color:var(--ink);
+  }
+  .custom-table tr:hover td{
+    background:rgba(255,255,255,0.02);
+  }
+  .badge-weight{
+    color:var(--teal);
+    font-weight:600;
+  }
+  .badge-reps{
+    color:var(--amber);
+  }
+  .badge-delta{
+    font-size:10px;
+    padding:2px 6px;
+    border-radius:2px;
+    font-weight:600;
+  }
+  .badge-delta.plus{ background:rgba(81,207,102,0.15); color:var(--green); border:1px solid rgba(81,207,102,0.3); }
+  .badge-delta.minus{ background:rgba(255,107,107,0.15); color:var(--red); border:1px solid rgba(255,107,107,0.3); }
+
+  /* Running Card Spec */
+  .run-card{
+    background:var(--panel);
+    border:1px solid var(--line-strong);
+    border-left:4px solid var(--amber);
+    padding:14px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .run-metric{
+    display:flex;
+    justify-content:space-between;
+    font-size:12px;
+    border-bottom:1px dashed var(--line);
+    padding-bottom:6px;
+  }
+  .run-metric span{color:var(--ink-dim);}
+  .run-metric strong{color:var(--amber);}
+
+  /* Progress View Layout */
+  .progress-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:20px;
+  }
+
+  .action-btn-sm{
+    background:transparent;
+    border:1px solid var(--line-strong);
+    color:var(--ink-dim);
+    padding:2px 6px;
+    font-size:10px;
+    cursor:pointer;
+    font-family:'IBM Plex Mono',monospace;
+  }
+  .action-btn-sm:hover{color:var(--ink); border-color:var(--teal);}
+  .action-btn-sm.del:hover{color:var(--red); border-color:rgba(255,107,107,0.5);}
+
+  /* Modales */
+  .modal-bg{
+    position:fixed; inset:0;
+    background:rgba(0,0,0,0.7);
+    z-index:100;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .modal-bg.open{display:flex;}
+  .modal{
+    background:var(--bg-2);
+    border:1px solid var(--line-strong);
+    box-shadow:0 20px 50px rgba(0,0,0,0.7);
+    width:100%;
+    max-width:460px;
+    padding:24px;
+  }
+  .modal h3{
+    font-family:'Oswald',sans-serif;
+    font-size:16px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--teal);
+    margin:0 0 16px;
+  }
+  .form-group{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    margin-bottom:14px;
+  }
+  .form-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .form-group label{
+    font-size:10px;
+    color:var(--ink-faint);
+    text-transform:uppercase;
+    letter-spacing:1px;
+  }
+  .form-group input, .form-group select{
+    background:var(--panel);
+    border:1px solid var(--line-strong);
+    color:var(--ink);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    padding:8px 10px;
+    outline:none;
+  }
+  .form-group input:focus{border-color:var(--teal);}
+
+  /* Footer */
+  .tb-footer{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 24px;
+    border-top:1px solid var(--line-strong);
+    flex-wrap:wrap;
+    gap:10px;
+    background:var(--bg-2);
+  }
+  .tb-footer .note{
+    font-size:11px;
+    color:var(--ink-faint);
+  }
+  #saveStatus{
+    font-size:10.5px;
+    color:var(--teal);
+    letter-spacing:0.5px;
+  }
+
+  @media (max-width:850px){
+    .day-grid, .progress-grid{grid-template-columns:1fr;}
+    body{padding:10px;}
+    .tab-btn.prog-tab{margin-left:0;}
+  }
+</style>
+</head>
+<body>
+
+<div class="sheet">
+
+  <!-- ENCABEZADO Y NAVEGACIÓN FIJADOS (STICKY) -->
+  <div class="sticky-header-wrapper">
+    <!-- HEADER -->
+    <header class="title-block">
+      <div class="tb-left">
+        <h1>Control de Entrenamiento</h1>
+        <p class="subtitle">Logbook de Gimnasio, Running & Control de Progreso</p>
+      </div>
+      <div class="tb-right">
+        <div class="tb-field">
+          <span>Últ. Peso</span>
+          <strong id="statLastWeight">-- kg</strong>
+        </div>
+        <div class="tb-field">
+          <span>Running (Km)</span>
+          <strong id="statTotalKm" class="amber">0 km</strong>
+        </div>
+        <div class="tb-field">
+          <span>Récords</span>
+          <strong id="statRecords" class="purple">0</strong>
+        </div>
+        <button class="btn-excel" id="btnExportCsv">📊 Exportar Excel</button>
+        <button class="btn-primary" id="btnQuickAddEx">+ Ejercicio</button>
+        <button class="btn-sec" id="btnQuickAddWeight">+ Peso</button>
+      </div>
+    </header>
+
+    <!-- NAVEGACIÓN DÍAS / PROGRESO -->
+    <nav class="nav-tabs" id="dayTabs">
+      <button class="tab-btn active" data-day="lunes">Lunes</button>
+      <button class="tab-btn" data-day="martes">Martes</button>
+      <button class="tab-btn" data-day="miercoles">Miércoles</button>
+      <button class="tab-btn" data-day="jueves">Jueves</button>
+      <button class="tab-btn" data-day="viernes">Viernes</button>
+      <button class="tab-btn" data-day="sabado">Sábado</button>
+      <button class="tab-btn" data-day="domingo">Domingo</button>
+      <button class="tab-btn prog-tab" data-day="progress">📈 Peso & Progreso</button>
+    </nav>
+  </div>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="content-area" id="mainContent">
+    <!-- Renderizado dinámicamente por JS -->
+  </main>
+
+  <footer class="tb-footer">
+    <div class="note">Guarda tu sobrecarga progresiva y kilometraje. Todos los datos permanecen localmente en tu navegador.</div>
+    <span id="saveStatus">Guardado automáticamente</span>
+  </footer>
+
+</div>
+
+<!-- MODAL EDITAR TÍTULO DEL DÍA -->
+<div class="modal-bg" id="dayTitleModalBg">
+  <div class="modal">
+    <h3>✏️ Personalizar Título del Día</h3>
+    <form id="dayTitleForm">
+      <div class="form-group">
+        <label>Título para <span id="lblDayKey" style="color:var(--teal); font-weight:600;"></span></label>
+        <input type="text" id="inpDayTitleVal" placeholder="Ej: Día 1 · Torso (Empuje / Pecho & Hombros)" required>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+        <button type="button" class="btn-sec" id="closeDayTitleModal">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar Título</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL AGREGAR/EDITAR EJERCICIO GIMNASIO -->
+<div class="modal-bg" id="exModalBg">
+  <div class="modal">
+    <h3 id="exModalTitle">Registrar Ejercicio</h3>
+    <form id="exForm">
+      <div class="form-group">
+        <label>Ejercicio</label>
+        <input type="text" id="inpExName" placeholder="Ej: Press de Banca / Sentadilla / Dominadas" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Día de la Semana</label>
+          <select id="inpExDay">
+            <option value="lunes">Lunes</option>
+            <option value="martes">Martes</option>
+            <option value="miercoles">Miércoles</option>
+            <option value="jueves">Jueves</option>
+            <option value="viernes">Viernes</option>
+            <option value="sabado">Sábado</option>
+            <option value="domingo">Domingo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Series</label>
+          <input type="number" id="inpExSeries" min="1" max="20" value="4" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Repeticiones</label>
+          <input type="text" id="inpExReps" placeholder="Ej: 8 - 10" required>
+        </div>
+        <div class="form-group">
+          <label>Peso (Kg)</label>
+          <input type="number" step="0.5" id="inpExWeight" placeholder="Ej: 70" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>RPE / Notas / Sensaciones</label>
+        <input type="text" id="inpExNotes" placeholder="Ej: RPE 8, enfocado en excéntrica lenta">
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+        <button type="button" class="btn-sec" id="closeExModal">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar Ejercicio</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL REGISTRAR RUNNING -->
+<div class="modal-bg" id="runModalBg">
+  <div class="modal">
+    <h3>🏃 Registro de Sesión Running</h3>
+    <form id="runForm">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Distancia (Km)</label>
+          <input type="number" step="0.01" id="inpRunDist" placeholder="Ej: 5.2" required>
+        </div>
+        <div class="form-group">
+          <label>Tiempo (Minutos)</label>
+          <input type="number" step="0.1" id="inpRunTime" placeholder="Ej: 26" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Ritmo Promedio (Min/Km)</label>
+          <input type="text" id="inpRunPace" placeholder="Ej: 5:00 min/km">
+        </div>
+        <div class="form-group">
+          <label>Frecuencia Cardíaca Prom.</label>
+          <input type="text" id="inpRunHr" placeholder="Ej: 145 bpm">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Notas de la Carrera</label>
+        <input type="text" id="inpRunNotes" placeholder="Ej: Terreno llano, sensación aeróbica cómoda">
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+        <button type="button" class="btn-sec" id="closeRunModal">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar Carrera</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL REGISTRAR PESO -->
+<div class="modal-bg" id="weightModalBg">
+  <div class="modal">
+    <h3>⚖️ Registrar Peso Corporal</h3>
+    <form id="weightForm">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fecha</label>
+          <input type="date" id="inpWeightDate" required>
+        </div>
+        <div class="form-group">
+          <label>Peso Corporal (Kg)</label>
+          <input type="number" step="0.1" id="inpWeightVal" placeholder="Ej: 75.4" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notas / Estado (Ej: En ayunas)</label>
+        <input type="text" id="inpWeightNotes" placeholder="Ej: En ayunas, pos entrenamiento">
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+        <button type="button" class="btn-sec" id="closeWeightModal">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar Registro</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL REGISTRAR RÉCORD / MEJORÍA -->
+<div class="modal-bg" id="recordModalBg">
+  <div class="modal">
+    <h3>🏆 Registrar Mejora / Récord Personal</h3>
+    <form id="recordForm">
+      <div class="form-group">
+        <label>Ejercicio / Prueba</label>
+        <input type="text" id="inpRecEx" placeholder="Ej: Press Banca / Running 5k" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Marca Anterior</label>
+          <input type="text" id="inpRecPrev" placeholder="Ej: 70 kg x 8 reps" required>
+        </div>
+        <div class="form-group">
+          <label>Marca Actual (Nueva)</label>
+          <input type="text" id="inpRecCurr" placeholder="Ej: 75 kg x 8 reps" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Incremento / Notas</label>
+        <input type="text" id="inpRecNotes" placeholder="Ej: +5 kg manteniéndose en RPE 8">
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+        <button type="button" class="btn-sec" id="closeRecordModal">Cancelar</button>
+        <button type="submit" class="btn-primary">Guardar Récord</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+(function(){
+
+  // Datos por defecto
+  const DEFAULT_DATA = {
+    routine: {
+      lunes: { name: 'Día 1 · Torso (Empuje / Pecho & Hombros)', exercises: [
+        { id: '1', name: 'Press de Banca Plano', series: 4, reps: '8 - 10', weight: 75, notes: 'Foco en pausa abajo' },
+        { id: '2', name: 'Press Inclinado con Mancuernas', series: 3, reps: '10 - 12', weight: 26, notes: 'Buen rango de movimiento' },
+        { id: '3', name: 'Elevaciones Laterales', series: 4, reps: '12 - 15', weight: 12, notes: 'Control de bajada' }
+      ], running: null },
+
+      martes: { name: 'Día 2 · Piernas & Core', exercises: [
+        { id: '4', name: 'Sentadilla Trasera Libre', series: 4, reps: '6 - 8', weight: 95, notes: 'Profunda' },
+        { id: '5', name: 'Peso Muerto Rumano', series: 3, reps: '8 - 10', weight: 85, notes: 'Sintiendo isquios' }
+      ], running: null },
+
+      miercoles: { name: 'Día 3 · Sesión Running Aeróbica', exercises: [], running: { dist: 6.5, time: 33, pace: '5:05 min/km', hr: '148 bpm', notes: 'Ritmo cómodo y constante' } },
+
+      jueves: { name: 'Día 4 · Espalda & Tríceps', exercises: [
+        { id: '6', name: 'Dominadas Pronas', series: 4, reps: '8 - 8', weight: 0, notes: 'Lastre +5kg opcional' },
+        { id: '7', name: 'Remo con Barra', series: 4, reps: '8 - 10', weight: 65, notes: 'Espalda neutra' }
+      ], running: null },
+
+      viernes: { name: 'Día 5 · Hipertrofia & Brazos', exercises: [
+        { id: '8', name: 'Curl de Bíceps con Barra Z', series: 4, reps: '10 - 12', weight: 30, notes: 'Aislamiento' },
+        { id: '9', name: 'Press Francés en Banco', series: 4, reps: '10 - 12', weight: 28, notes: 'Control de codos' }
+      ], running: null },
+
+      sabado: { name: 'Día 6 · Running Larga Distancia', exercises: [], running: { dist: 10.0, time: 52, pace: '5:12 min/km', hr: '155 bpm', notes: 'Fondo de fin de semana' } },
+
+      domingo: { name: 'Día 7 · Descanso Activo / Movilidad', exercises: [], running: null }
+    },
+    weightLogs: [
+      { id: 'w1', date: '2026-08-01', weight: 76.2, notes: 'En ayunas' },
+      { id: 'w2', date: '2026-08-08', weight: 75.8, notes: 'En ayunas' },
+      { id: 'w3', date: '2026-08-15', weight: 75.4, notes: 'En ayunas' }
+    ],
+    records: [
+      { id: 'r1', exercise: 'Press de Banca', prev: '70 kg x 8', curr: '75 kg x 8', notes: '+5 kg con técnica limpia', date: '2026-08-10' },
+      { id: 'r2', exercise: 'Sentadilla Libre', prev: '90 kg x 6', curr: '95 kg x 6', notes: 'Profundidad completa', date: '2026-08-12' },
+      { id: 'r3', exercise: 'Running 5k', prev: '27:15 min', curr: '25:30 min', notes: '-1:45 min mejoría de marca', date: '2026-08-14' }
+    ]
+  };
+
+  let store = {};
+  let activeDay = 'lunes';
+  let editingExId = null;
+
+  function loadData(){
+    try{
+      const saved = localStorage.getItem('gym-run-tracker-v1');
+      store = saved ? JSON.parse(saved) : DEFAULT_DATA;
+    }catch(e){
+      store = DEFAULT_DATA;
+    }
+  }
+
+  function saveData(){
+    try{
+      localStorage.setItem('gym-run-tracker-v1', JSON.stringify(store));
+      document.getElementById('saveStatus').textContent = 'Guardado ' + new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    }catch(e){}
+  }
+
+  function fmtDate(dStr){
+    if(!dStr) return '';
+    const parts = dStr.split('-');
+    return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : dStr;
+  }
+
+  function updateHeaderStats(){
+    const lastW = store.weightLogs.length > 0 ? store.weightLogs[store.weightLogs.length - 1].weight + ' kg' : '-- kg';
+    document.getElementById('statLastWeight').textContent = lastW;
+
+    let totalKm = 0;
+    Object.values(store.routine).forEach(d => {
+      if(d.running && d.running.dist) totalKm += parseFloat(d.running.dist);
+    });
+    document.getElementById('statTotalKm').textContent = totalKm.toFixed(1) + ' km';
+
+    document.getElementById('statRecords').textContent = store.records.length;
+  }
+
+  // --- FUNCIÓN EXPORTAR A EXCEL (CSV) ---
+  function exportToCSV() {
+    let csvContent = "\uFEFF"; // BOM UTF-8 para compatibilidad directa con Excel
+
+    // Sección 1: Ejercicios Gym
+    csvContent += "REGISTRO DE ENTRENAMIENTO - GIMNASIO\n";
+    csvContent += "Día,Título del Día,Ejercicio,Series,Repeticiones,Peso (kg),Notas / RPE\n";
+
+    const days = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+    days.forEach(dayKey => {
+      const d = store.routine[dayKey];
+      if (d && d.exercises && d.exercises.length > 0) {
+        d.exercises.forEach(ex => {
+          const row = [
+            dayKey.toUpperCase(),
+            `"${(d.name || '').replace(/"/g, '""')}"`,
+            `"${(ex.name || '').replace(/"/g, '""')}"`,
+            ex.series || 0,
+            `"${(ex.reps || '').replace(/"/g, '""')}"`,
+            ex.weight || 0,
+            `"${(ex.notes || '').replace(/"/g, '""')}"`
+          ];
+          csvContent += row.join(",") + "\n";
+        });
+      }
+    });
+
+    // Sección 2: Running
+    csvContent += "\nSESIONES DE RUNNING\n";
+    csvContent += "Día,Distancia (km),Tiempo (min),Ritmo,Pulsaciones,Notas\n";
+    days.forEach(dayKey => {
+      const d = store.routine[dayKey];
+      if (d && d.running) {
+        const r = d.running;
+        const row = [
+          dayKey.toUpperCase(),
+          r.dist || 0,
+          r.time || 0,
+          `"${(r.pace || '').replace(/"/g, '""')}"`,
+          `"${(r.hr || '').replace(/"/g, '""')}"`,
+          `"${(r.notes || '').replace(/"/g, '""')}"`
+        ];
+        csvContent += row.join(",") + "\n";
+      }
+    });
+
+    // Sección 3: Historial de Peso
+    csvContent += "\nHISTORIAL DE PESO CORPORAL\n";
+    csvContent += "Fecha,Peso (kg),Notas\n";
+    (store.weightLogs || []).forEach(w => {
+      const row = [
+        w.date || '',
+        w.weight || 0,
+        `"${(w.notes || '').replace(/"/g, '""')}"`
+      ];
+      csvContent += row.join(",") + "\n";
+    });
+
+    // Sección 4: Récords
+    csvContent += "\nRÉCORDS Y SOBRECARGA\n";
+    csvContent += "Fecha,Ejercicio,Marca Anterior,Marca Actual,Notas\n";
+    (store.records || []).forEach(r => {
+      const row = [
+        r.date || '',
+        `"${(r.exercise || '').replace(/"/g, '""')}"`,
+        `"${(r.prev || '').replace(/"/g, '""')}"`,
+        `"${(r.curr || '').replace(/"/g, '""')}"`,
+        `"${(r.notes || '').replace(/"/g, '""')}"`
+      ];
+      csvContent += row.join(",") + "\n";
+    });
+
+    // Creación del enlace de descarga
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `control_entrenamiento_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // --- RENDERIZADO PRINCIPAL ---
+
+  function render(){
+    updateHeaderStats();
+    const main = document.getElementById('mainContent');
+    main.innerHTML = '';
+
+    if(activeDay === 'progress'){
+      renderProgressView(main);
+      return;
+    }
+
+    const dayData = store.routine[activeDay] || { name: 'Día de Entrenamiento', exercises: [], running: null };
+
+    const grid = document.createElement('div');
+    grid.className = 'day-grid';
+
+    // Panel 1: Gimnasio / Ejercicios
+    const gymPanel = document.createElement('div');
+    gymPanel.className = 'panel-box';
+
+    let tableRows = '';
+    if(dayData.exercises.length === 0){
+      tableRows = `<tr><td colspan="6" style="text-align:center; color:var(--ink-faint); font-style:italic; padding:20px;">Sin ejercicios registrados para este día.</td></tr>`;
+    } else {
+      dayData.exercises.forEach(ex => {
+        tableRows += `
+          <tr>
+            <td><strong>${escapeHtml(ex.name)}</strong></td>
+            <td style="text-align:center;">${ex.series}</td>
+            <td style="text-align:center;"><span class="badge-reps">${escapeHtml(ex.reps)}</span></td>
+            <td style="text-align:center;"><span class="badge-weight">${ex.weight} kg</span></td>
+            <td style="font-size:11px; color:var(--ink-dim);">${escapeHtml(ex.notes || '-')}</td>
+            <td style="text-align:right;">
+              <button class="action-btn-sm edit-ex" data-id="${ex.id}">✏️</button>
+              <button class="action-btn-sm del del-ex" data-id="${ex.id}">✕</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    gymPanel.innerHTML = `
+      <div class="panel-header">
+        <h3>🏋️ Gym: ${escapeHtml(dayData.name)}</h3>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-sec" id="btnEditDayTitle">✏️ Renombrar Día</button>
+          <button class="btn-sec" id="btnAddExToDay">+ Agregar Ejercicio</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Ejercicio</th>
+              <th style="text-align:center;">Series</th>
+              <th style="text-align:center;">Reps</th>
+              <th style="text-align:center;">Peso</th>
+              <th>Notas / RPE</th>
+              <th style="text-align:right;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRows}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    // Events gym buttons
+    gymPanel.querySelectorAll('.edit-ex').forEach(b => {
+      b.addEventListener('click', () => openExModal(b.dataset.id));
+    });
+    gymPanel.querySelectorAll('.del-ex').forEach(b => {
+      b.addEventListener('click', () => deleteEx(b.dataset.id));
+    });
+    gymPanel.querySelector('#btnAddExToDay').addEventListener('click', () => openExModal(null));
+    gymPanel.querySelector('#btnEditDayTitle').addEventListener('click', openDayTitleModal);
+
+    // Panel 2: Running del Día
+    const runPanel = document.createElement('div');
+    runPanel.className = 'panel-box';
+
+    const r = dayData.running;
+    let runContent = '';
+    if(!r){
+      runContent = `
+        <p style="font-size:11px; color:var(--ink-faint); margin:0;">No hay carrera registrada para el ${activeDay}.</p>
+        <button class="btn-primary" id="btnLogRun" style="margin-top:10px;">+ Registrar Carrera</button>
+      `;
+    } else {
+      runContent = `
+        <div class="run-card">
+          <div class="run-metric"><span>Distancia:</span> <strong>${r.dist} Km</strong></div>
+          <div class="run-metric"><span>Tiempo:</span> <strong>${r.time} Min</strong></div>
+          <div class="run-metric"><span>Ritmo:</span> <strong>${escapeHtml(r.pace || '--')}</strong></div>
+          <div class="run-metric"><span>Pulsaciones:</span> <strong>${escapeHtml(r.hr || '--')}</strong></div>
+          <div style="font-size:11px; color:var(--ink-dim); margin-top:4px;">${escapeHtml(r.notes || '')}</div>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button class="btn-sec" id="btnLogRun" style="flex:1;">✏️ Editar</button>
+            <button class="action-btn-sm del" id="btnDelRun">✕ Eliminar</button>
+          </div>
+        </div>
+      `;
+    }
+
+    runPanel.innerHTML = `
+      <div class="panel-header">
+        <h3>🏃 Running & Cardio</h3>
+      </div>
+      ${runContent}
+    `;
+
+    grid.appendChild(gymPanel);
+    grid.appendChild(runPanel);
+    main.appendChild(grid);
+
+    // Event listeners Running
+    const logRunBtn = runPanel.querySelector('#btnLogRun');
+    if(logRunBtn) logRunBtn.addEventListener('click', openRunModal);
+
+    const delRunBtn = runPanel.querySelector('#btnDelRun');
+    if(delRunBtn) delRunBtn.addEventListener('click', () => {
+      store.routine[activeDay].running = null;
+      saveData();
+      render();
+    });
+  }
+
+  // --- SECCIÓN PESO & PROGRESO ---
+
+  function renderProgressView(container){
+    const grid = document.createElement('div');
+    grid.className = 'progress-grid';
+
+    // Tabla 1: Control de Peso Corporal
+    const weightBox = document.createElement('div');
+    weightBox.className = 'panel-box';
+
+    let weightRows = '';
+    if(store.weightLogs.length === 0){
+      weightRows = `<tr><td colspan="4" style="text-align:center; color:var(--ink-faint);">Sin datos de peso.</td></tr>`;
+    } else {
+      let prev = null;
+      store.weightLogs.forEach((w, idx) => {
+        let deltaHtml = '--';
+        if(prev !== null){
+          const diff = (w.weight - prev).toFixed(1);
+          if(diff > 0) deltaHtml = `<span class="badge-delta minus">+${diff} kg</span>`;
+          else if(diff < 0) deltaHtml = `<span class="badge-delta plus">${diff} kg</span>`;
+          else deltaHtml = `<span class="badge-delta">=</span>`;
+        }
+        prev = w.weight;
+
+        weightRows += `
+          <tr>
+            <td>${fmtDate(w.date)}</td>
+            <td><strong>${w.weight} kg</strong></td>
+            <td>${deltaHtml}</td>
+            <td style="text-align:right;"><button class="action-btn-sm del del-w" data-id="${w.id}">✕</button></td>
+          </tr>
+        `;
+      });
+    }
+
+    weightBox.innerHTML = `
+      <div class="panel-header">
+        <h3>⚖️ Historial de Peso Corporal</h3>
+        <button class="btn-primary" id="btnOpenWeightModal">+ Registrar</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Peso</th>
+              <th>Diferencia</th>
+              <th style="text-align:right;">Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${weightRows}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    // Tabla 2: Control de Mejoria / Récords Personales
+    const recordBox = document.createElement('div');
+    recordBox.className = 'panel-box';
+
+    let recRows = '';
+    if(store.records.length === 0){
+      recRows = `<tr><td colspan="5" style="text-align:center; color:var(--ink-faint);">Sin récords guardados.</td></tr>`;
+    } else {
+      store.records.forEach(r => {
+        recRows += `
+          <tr>
+            <td><strong>${escapeHtml(r.exercise)}</strong></td>
+            <td style="color:var(--ink-dim);">${escapeHtml(r.prev)}</td>
+            <td><strong style="color:var(--teal);">${escapeHtml(r.curr)}</strong></td>
+            <td style="font-size:10px; color:var(--green);">${escapeHtml(r.notes || '')}</td>
+            <td style="text-align:right;"><button class="action-btn-sm del del-rec" data-id="${r.id}">✕</button></td>
+          </tr>
+        `;
+      });
+    }
+
+    recordBox.innerHTML = `
+      <div class="panel-header">
+        <h3>🏆 Tabla de Sobrecarga & Récords</h3>
+        <button class="btn-primary" id="btnOpenRecordModal">+ Nuevo Récord</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Ejercicio / Prueba</th>
+              <th>Marca Ant.</th>
+              <th>Marca Nuev.</th>
+              <th>Notas</th>
+              <th style="text-align:right;">Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${recRows}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    grid.appendChild(weightBox);
+    grid.appendChild(recordBox);
+    container.appendChild(grid);
+
+    // Event Listeners Progreso
+    weightBox.querySelector('#btnOpenWeightModal').addEventListener('click', () => {
+      document.getElementById('inpWeightDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('weightModalBg').classList.add('open');
+    });
+    weightBox.querySelectorAll('.del-w').forEach(b => {
+      b.addEventListener('click', () => {
+        store.weightLogs = store.weightLogs.filter(x => x.id !== b.dataset.id);
+        saveData();
+        render();
+      });
+    });
+
+    recordBox.querySelector('#btnOpenRecordModal').addEventListener('click', () => {
+      document.getElementById('recordModalBg').classList.add('open');
+    });
+    recordBox.querySelectorAll('.del-rec').forEach(b => {
+      b.addEventListener('click', () => {
+        store.records = store.records.filter(x => x.id !== b.dataset.id);
+        saveData();
+        render();
+      });
+    });
+  }
+
+  // --- LÓGICA DE MODALES ---
+
+  // Modal Título del Día
+  const dayTitleModalBg = document.getElementById('dayTitleModalBg');
+  function openDayTitleModal(){
+    document.getElementById('lblDayKey').textContent = activeDay.toUpperCase();
+    document.getElementById('inpDayTitleVal').value = store.routine[activeDay].name || '';
+    dayTitleModalBg.classList.add('open');
+  }
+  document.getElementById('closeDayTitleModal').addEventListener('click', () => dayTitleModalBg.classList.remove('open'));
+  document.getElementById('dayTitleForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const newTitle = document.getElementById('inpDayTitleVal').value.trim();
+    if(newTitle){
+      store.routine[activeDay].name = newTitle;
+      saveData();
+      render();
+    }
+    dayTitleModalBg.classList.remove('open');
+  });
+
+  // Gym Modal
+  const exModalBg = document.getElementById('exModalBg');
+  function openExModal(id){
+    editingExId = id;
+    const form = document.getElementById('exForm');
+    form.reset();
+
+    if(id){
+      const dayExs = store.routine[activeDay].exercises;
+      const ex = dayExs.find(e => e.id === id);
+      if(ex){
+        document.getElementById('inpExName').value = ex.name;
+        document.getElementById('inpExDay').value = activeDay;
+        document.getElementById('inpExSeries').value = ex.series;
+        document.getElementById('inpExReps').value = ex.reps;
+        document.getElementById('inpExWeight').value = ex.weight;
+        document.getElementById('inpExNotes').value = ex.notes || '';
+      }
+    } else {
+      document.getElementById('inpExDay').value = activeDay === 'progress' ? 'lunes' : activeDay;
+    }
+
+    exModalBg.classList.add('open');
+  }
+
+  function deleteEx(id){
+    store.routine[activeDay].exercises = store.routine[activeDay].exercises.filter(e => e.id !== id);
+    saveData();
+    render();
+  }
+
+  document.getElementById('closeExModal').addEventListener('click', () => exModalBg.classList.remove('open'));
+  document.getElementById('exForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const dayKey = document.getElementById('inpExDay').value;
+    const name = document.getElementById('inpExName').value.trim();
+    const series = parseInt(document.getElementById('inpExSeries').value);
+    const reps = document.getElementById('inpExReps').value.trim();
+    const weight = parseFloat(document.getElementById('inpExWeight').value);
+    const notes = document.getElementById('inpExNotes').value.trim();
+
+    if(editingExId){
+      const ex = store.routine[activeDay].exercises.find(x => x.id === editingExId);
+      if(ex){
+        Object.assign(ex, { name, series, reps, weight, notes });
+      }
+    } else {
+      store.routine[dayKey].exercises.push({
+        id: 'ex_' + Date.now().toString(36),
+        name, series, reps, weight, notes
+      });
+    }
+
+    saveData();
+    render();
+    exModalBg.classList.remove('open');
+  });
+
+  // Running Modal
+  const runModalBg = document.getElementById('runModalBg');
+  function openRunModal(){
+    const r = store.routine[activeDay].running || {};
+    document.getElementById('inpRunDist').value = r.dist || '';
+    document.getElementById('inpRunTime').value = r.time || '';
+    document.getElementById('inpRunPace').value = r.pace || '';
+    document.getElementById('inpRunHr').value = r.hr || '';
+    document.getElementById('inpRunNotes').value = r.notes || '';
+    runModalBg.classList.add('open');
+  }
+  document.getElementById('closeRunModal').addEventListener('click', () => runModalBg.classList.remove('open'));
+  document.getElementById('runForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    store.routine[activeDay].running = {
+      dist: parseFloat(document.getElementById('inpRunDist').value),
+      time: parseFloat(document.getElementById('inpRunTime').value),
+      pace: document.getElementById('inpRunPace').value.trim(),
+      hr: document.getElementById('inpRunHr').value.trim(),
+      notes: document.getElementById('inpRunNotes').value.trim()
+    };
+    saveData();
+    render();
+    runModalBg.classList.remove('open');
+  });
+
+  // Peso Modal
+  const weightModalBg = document.getElementById('weightModalBg');
+  document.getElementById('closeWeightModal').addEventListener('click', () => weightModalBg.classList.remove('open'));
+  document.getElementById('weightForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    store.weightLogs.push({
+      id: 'w_' + Date.now().toString(36),
+      date: document.getElementById('inpWeightDate').value,
+      weight: parseFloat(document.getElementById('inpWeightVal').value),
+      notes: document.getElementById('inpWeightNotes').value.trim()
+    });
+    store.weightLogs.sort((a,b) => new Date(a.date) - new Date(b.date));
+    saveData();
+    render();
+    weightModalBg.classList.remove('open');
+  });
+
+  // Récords Modal
+  const recordModalBg = document.getElementById('recordModalBg');
+  document.getElementById('closeRecordModal').addEventListener('click', () => recordModalBg.classList.remove('open'));
+  document.getElementById('recordForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    store.records.push({
+      id: 'rec_' + Date.now().toString(36),
+      exercise: document.getElementById('inpRecEx').value.trim(),
+      prev: document.getElementById('inpRecPrev').value.trim(),
+      curr: document.getElementById('inpRecCurr').value.trim(),
+      notes: document.getElementById('inpRecNotes').value.trim(),
+      date: new Date().toISOString().split('T')[0]
+    });
+    saveData();
+    render();
+    recordModalBg.classList.remove('open');
+  });
+
+  // Navegación de pestañas
+  document.querySelectorAll('#dayTabs .tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#dayTabs .tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeDay = btn.dataset.day;
+      render();
+    });
+  });
+
+  // Botones Header
+  document.getElementById('btnExportCsv').addEventListener('click', exportToCSV);
+  document.getElementById('btnQuickAddEx').addEventListener('click', () => openExModal(null));
+  document.getElementById('btnQuickAddWeight').addEventListener('click', () => {
+    document.getElementById('inpWeightDate').value = new Date().toISOString().split('T')[0];
+    weightModalBg.classList.add('open');
+  });
+
+  function escapeHtml(str) {
+    return (str || '').replace(/[&<>"']/g, function(m) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+    });
+  }
+
+  // Inicialización
+  loadData();
+  render();
+
+})();
+</script>
+
+</body>
+</html>
